@@ -1,32 +1,16 @@
 import React, { Component } from 'react';
-import axios from 'axios';
-
-const GET_ORGANIZATION = `
-  {
-    organization(login: "the-road-to-learn-react") {
-      name
-      url
-    }
-  }
-`;
-
-const axiosGitHubGraphQL = axios.create({
-  baseURL: 'https://api.github.com/graphql',
-  headers: {
-    Authorization: `bearer ${process.env.REACT_APP_GITHUB_PERSONAL_ACCESS_TOKEN}`,
-  },
-});
-
-const TITLE = 'React GraphQL GitHub Client';
+import {addStarToRepository, removeStarFromRepository, getIssuesOfRepository, resolveIssuesQuery, resolveAddStarMutation, resolveRemoveStarMutation} from './helpers/queries'
+import Repository from './Repository';
 
 class App extends Component {
-
   state = {
-    path: 'the-road-to-learn-react/the-road-to-learn-react',
+    path: 'AlbertWhite/things',
+    repository: null,
+    errors: null,
   };
 
   componentDidMount() {
-    this.onFetchFromGithub()
+    this.onFetchFromGitHub(this.state.path);
   }
 
   onChange = event => {
@@ -34,18 +18,42 @@ class App extends Component {
   };
 
   onSubmit = event => {
+    this.onFetchFromGitHub(this.state.path);
     event.preventDefault();
   };
 
-  onFetchFromGithub = () => {
-    axiosGitHubGraphQL.post('', {query: GET_ORGANIZATION}).then(result => console.warn('alb',{result}))
-  }
+  onFetchFromGitHub = (path, cursor) => {
+    getIssuesOfRepository(path, cursor).then(queryResult =>
+      this.setState(resolveIssuesQuery(queryResult, cursor)),
+    );
+  };
+
+  onFetchMoreIssues = () => {
+    const {
+      endCursor,
+    } = this.state.repository.issues.pageInfo;
+
+    this.onFetchFromGitHub(this.state.path, endCursor);
+  };
+
+  onStarRepository = (repositoryId, viewerHasStarred) => {
+    if (viewerHasStarred) {
+      removeStarFromRepository(repositoryId).then(mutationResult =>
+        this.setState(resolveRemoveStarMutation(mutationResult)),
+      );
+    } else {
+      addStarToRepository(repositoryId).then(mutationResult =>
+        this.setState(resolveAddStarMutation(mutationResult)),
+      );
+    }
+  };
 
   render() {
-    const { path } = this.state;
+    const { path, repository, errors } = this.state;
+
     return (
       <div>
-        <h1>{TITLE}</h1>
+        <h2>React GraphQL GitHub Client</h2>
         <form onSubmit={this.onSubmit}>
           <label htmlFor="url">
             Show open issues for https://github.com/
@@ -53,16 +61,25 @@ class App extends Component {
           <input
             id="url"
             type="text"
+            value={path}
             onChange={this.onChange}
             style={{ width: '300px' }}
-            value={path}
           />
           <button type="submit">Search</button>
         </form>
 
         <hr />
 
-        {/* Here comes the result! */}
+        {repository ? (
+          <Repository
+            repository={repository}
+            errors={errors}
+            onFetchMoreIssues={this.onFetchMoreIssues}
+            onStarRepository={this.onStarRepository}
+          />
+        ) : (
+          <p>No information yet ...</p>
+        )}
       </div>
     );
   }
