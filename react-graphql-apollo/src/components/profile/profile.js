@@ -1,23 +1,26 @@
 import React from 'react'
-import {Query} from 'react-apollo'
+import {Query, graphql} from 'react-apollo'
 import {GET_REPOSITORIES_OF_CURRENT_USER} from './query'
 import Repos from '../repo/repos'
 
-const Profile = () => (
+const Profile = ({ data, loading, error }) => {
+  if (error) {
+    return error.toString()
+  }
+  const { viewer } = data;
+  if (loading || !viewer) {
+    return null;
+  }
+  return <Repos repositories={viewer.repositories} />
+};
+
+const ProfileWithRenderProps = () => (
   <Query query={GET_REPOSITORIES_OF_CURRENT_USER}>
-    {({data, loading, error}) => {
-      const {viewer} = data
-      if (loading || !viewer) {
-        return null;
-      }
-      if(error){
-        return error.toString()
-      }
-      return (
-        <Repos repositories={viewer.repositories} />
-      );
-    }}
+    {Profile}
   </Query>  
   )
 
-export default Profile
+
+const ProfileWithHOC = graphql(GET_REPOSITORIES_OF_CURRENT_USER)(Profile);
+
+export default ProfileWithRenderProps

@@ -27,4 +27,6 @@ const Query = props => {
 
 - `<Mutation>` is used for mutation. It has mutation and variables props. Mutation will be triggered if the mutation passed as the parameter is triggered dans an event.
 
+- Second way for graphQL: HOC. `graphql(YOUR_QUERY)(component)`
+
 (react apollo api)[https://www.apollographql.com/docs/react/api/react-apollo/#query]
