@@ -1,5 +1,8 @@
 import React from 'react'
 import Link from '../shared/link'
+import {STAR_REPOSITORY, UNSTAR_REPOSITORY} from './query'
+import { Mutation } from 'react-apollo';
+import Button from '../shared/button'
 
 const Repos  = ({ repositories }) => {
   return repositories.edges.map(({node: {
@@ -20,9 +23,29 @@ const Repos  = ({ repositories }) => {
         <h2>
           <Link href={url}>{name}</Link>
         </h2>
-        <div className="RepositoryItem-title-action">
-          {stargazers.totalCount} Stars
-        </div>
+        {!viewerHasStarred ? (
+        <Mutation mutation={STAR_REPOSITORY} variables={{ id }}>
+          {
+            // addStar is returned by the mutation
+            (addStar, { data, loading, error }) => (<Button
+            className={'RepositoryItem-title-action'}
+            onClick={addStar}
+          >
+            {stargazers.totalCount} Star
+          </Button>)}
+        </Mutation>
+        ) : (
+          <Mutation mutation={UNSTAR_REPOSITORY} variables={{ id }}>
+            {(removeStar, { data, loading, error }) => (
+              <Button
+                className="RepositoryItem-title-action"
+                onClick={removeStar}
+              >
+                {stargazers.totalCount} Unstar
+              </Button>
+            )}
+          </Mutation>
+        )}
       </div>
       <div className="RepositoryItem-description">
         <div
