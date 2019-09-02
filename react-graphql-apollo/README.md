@@ -29,4 +29,6 @@ const Query = props => {
 
 - Second way for graphQL: HOC. `graphql(YOUR_QUERY)(component)`
 
+- Apollo Client offers functionalities to read/write manually from/to the cache locally without more network requests.
+
 (react apollo api)[https://www.apollographql.com/docs/react/api/react-apollo/#query]
